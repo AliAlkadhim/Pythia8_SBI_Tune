@@ -1,0 +1,11 @@
+{
+  "base_url": "/",
+  "hostname": "0.0.0.0",
+  "notebook_dir": "/home/ali/Desktop/Pulled_Github_Repositories/Pythia8_SBI_Tune/code/docker/tutorial",
+  "password": false,
+  "pid": 24,
+  "port": 8888,
+  "secure": false,
+  "token": "007e156991c8f836fd255e5f3481658a0d636bd9c6ec7f01",
+  "url": "http://0.0.0.0:8888/"
+}

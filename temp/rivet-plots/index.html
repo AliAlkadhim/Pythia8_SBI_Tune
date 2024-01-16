@@ -1,0 +1,46 @@
+<html>
+<head>
+<title>Plots from Rivet analyses</title>
+<style>
+      html { font-family: sans-serif; }
+      img { border: 0; }
+      a { text-decoration: none; font-weight: bold; }
+    </style>
+            <script type="text/x-mathjax-config">
+        MathJax.Hub.Config({
+          tex2jax: {inlineMath: [["$","$"]]}
+        });
+        </script>
+        <script type="text/javascript" async
+          src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+        </script>
+        
+
+        <script type="text/javascript">
+            function filterPlots(ana, patt) {
+                var regex = new RegExp(patt);
+                var sec = document.getElementById('ana_'+ana);
+                var plots = sec.getElementsByClassName('plot');
+                var i; for (i = 0; i < plots.length; ++i) {
+                    // var viz = (regex.test(plots[i].id)) ? 'visible' : 'hidden';
+                    // plots[i].style.visibility = viz;
+                    var dis = (regex.test(plots[i].id)) ? 'block' : 'none';
+                    plots[i].style.display = dis;
+                }
+                return false;
+           }
+        </script>
+        </head>
+<body><h2>Plots from Rivet analyses</h2>
+
+
+<h3><a href="ALEPH_1996_S3196992/index.html" style="text-decoration:none;">Measurement of the quark to photon fragmentation function (ALEPH_1996_S3196992)</a></h3>
+<p><a href="https://inspirehep.net/literature?q=3196992">Inspire</a> &#124; <a href="http://hepdata.cedar.ac.uk/view/irn3196992">HepData</a> &#124; Z.Phys.C69:365-378,1996 &#124; doi:10.1007/s002880050037</p>
+<p style="font-size:smaller;">Earlier measurements at LEP of isolated hard photons in hadronic Z decays, attributed to radiation from primary quark pairs, have been extended in the ALEPH experiment to include hard photon production inside hadron jets. Events are selected where all particles combine democratically to form hadron jets, one of which contains a photon with a fractional energy $z &gt; 0.7$. After statistical subtraction of non-prompt photons, the quark-to-photon fragmentation function, $D(z)$, is extracted directly from the measured 2-jet rate.</p>
+<footer style="clear:both; margin-top:3em; padding-top:3em">
+<p>Generated at Thursday, 11. January 2024 05:16PM</p>
+<p>Created with command: <pre>rivet-mkhtml ALEPH_1996_S3196992.yoda</pre></p>
+</footer>
+
+</body>
+</html>
