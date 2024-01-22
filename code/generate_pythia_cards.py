@@ -2,7 +2,7 @@ import pandas as pd
 import os
 filename="a_b_samples_uniform_1.csv"
 orig_datacard = 'ALEPH_1996_S3486095_Cards/Aplanarity.cmnd'
-df = pd.read_csv(filename)[:20]
+df = pd.read_csv(filename)
 for rowind, row in df.iterrows():
     print(f"a={row['a']}", '\t', f"b={row['b']}")
     

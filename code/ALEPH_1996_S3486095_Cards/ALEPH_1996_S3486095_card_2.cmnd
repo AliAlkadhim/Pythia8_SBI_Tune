@@ -1,5 +1,5 @@
 ! 1) Settings that will be used in a main program.
-Main:numberOfEvents = 100000          ! number of events to generate
+Main:numberOfEvents = 50000          ! number of events to generate
 Next:numberShowEvent = 0           ! suppress full listing of first events
 
 # random seed

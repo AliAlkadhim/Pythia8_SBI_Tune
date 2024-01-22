@@ -1,5 +1,5 @@
 ! 1) Settings that will be used in a main program.
-Main:numberOfEvents = 100000          ! number of events to generate
+Main:numberOfEvents = 50000          ! number of events to generate
 Next:numberShowEvent = 0           ! suppress full listing of first events
 
 # random seed
@@ -21,6 +21,6 @@ WeakSingleBoson:ffbar2gmZ = on
 PDF:lepton = off
 SpaceShower:QEDshowerByL = off
 
-# StringZ:aLund = 0.8907313813100579
+StringZ:aLund = 0.8907313813100579
 
-# StringZ:bLund = 1.7739212819523444
+StringZ:bLund = 1.7739212819523444

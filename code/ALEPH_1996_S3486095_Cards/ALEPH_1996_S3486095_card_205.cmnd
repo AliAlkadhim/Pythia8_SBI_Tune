@@ -1,0 +1,26 @@
+! 1) Settings that will be used in a main program.
+Main:numberOfEvents = 50000          ! number of events to generate
+Next:numberShowEvent = 0           ! suppress full listing of first events
+
+# random seed
+Random:setSeed = on
+Random:seed = 0
+
+! 2) Beam parameter settings.
+Beams:idA = 11                ! first beam,  e- = 11
+Beams:idB = -11                ! second beam, e+ = -11
+Beams:eCM = 91.2               ! CM energy of collision
+
+
+
+# Pythia 8 settings for LEP
+# Hadronic decays including b quarks, with ISR photons switched off
+WeakSingleBoson:ffbar2gmZ = on
+23:onMode = off
+23:onIfAny = 1 2 3 4 5
+PDF:lepton = off
+SpaceShower:QEDshowerByL = off
+
+StringZ:aLund = 1.0700666975423432
+
+StringZ:bLund = 1.204270615289246
