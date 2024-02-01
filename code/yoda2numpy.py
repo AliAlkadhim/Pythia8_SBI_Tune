@@ -3,6 +3,7 @@
 # ----------------------------------------------------------------------------
 import os, sys, re
 import numpy as np
+import pandas as pd
 #from numba import njit
 # ----------------------------------------------------------------------------
 
@@ -32,6 +33,17 @@ def decode_yoda(hists, findlabel, findbegin, findnumber):
         # to shape (number-of-bins, number-of-columns)
         d = np.array([float(x) for x in findnumber.findall(values)]).reshape(-1, nlabel)
 
+        # check whether to convert to differential cross sections
+        if labels[0] == 'xlow':
+            # convert to differential cross sections by 
+            # dividing by bin widths
+            dx = d.T[1]-d.T[0]
+            dx2= dx*dx
+            d.T[2] /= dx
+            d.T[3] /= dx2
+            d.T[4] /= dx
+            d.T[5] /= dx2
+            
         # store data in a map
         if name in hmap:
             raise ValueError('duplicate key: '+name)
@@ -98,3 +110,13 @@ class Yoda2Numpy:
         label, hmap = decode_yoda(hists, findlabel, findbegin, findnumber)
 
         return label, hmap
+
+    def todf(self, hists):
+        labels, hmap = hists
+        dfmap = {}
+        keys  = list(hmap.keys())
+        for key in keys:
+            h = hmap[key].T
+            dfmap[key] = pd.DataFrame({label: value for label, value in zip(labels, h)})
+        return dfmap
+        
