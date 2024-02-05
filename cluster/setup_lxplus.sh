@@ -22,3 +22,4 @@
 
 export PYTHIA8DATA=/cvmfs/sft.cern.ch/lcg/releases/LCG_88b/MCGenerators/pythia8/306/x86_64-centos7-gcc62-opt/share/Pythia8/xmldoc/
 source /cvmfs/sft.cern.ch/lcg/releases/LCG_88b/MCGenerators/rivet/3.1.6/x86_64-centos7-gcc62-opt/rivetenv.sh
+source /cvmfs/sft.cern.ch/lcg/views/LCG_102/x86_64-centos7-gcc11-opt/setup.sh
