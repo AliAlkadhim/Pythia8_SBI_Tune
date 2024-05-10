@@ -27,22 +27,23 @@ mp.rc('text', usetex=True)
 memory = Memory('/afs/cern.ch/work/a/aalkadhi/private/TUNES/Pythia8_SBI_Tune/cluster')
 
 
-@memory.cache
+# @memory.cache
 def get_data():
     yoda2numpy = Yoda2Numpy()
     files = list(glob('ALEPH_YODAS/*.yoda'))
     # M = len(files)
-    M = 100
+    M = 1000
     generated_indices = []
     for file in files[:M]:
         index = file.split('_')[-1].split('.')[0]
-        generated_indices.append(int(index) -1)    
+        generated_indices.append(int(index))    
     generated_indices.sort()
-    
+    print(generated_indices)
     # # --- SIM
     print(f'looping over {M:d} sim yoda files...\n')
     dfsims = []
     for ii in tqdm(generated_indices):    
+        # index here should match the index of the file
         dfsims.append( yoda2numpy.todf( yoda2numpy('sim', index=ii) ) )
 
     # # --- NEW
@@ -121,6 +122,8 @@ def test_statistic(data_keys, mc_keys, dfdata, dfpred, which = 0):
 
 if __name__ == '__main__':
     dfdata, dfsims, generated_indices = get_data()
+    print(generated_indices)
+    # print(dfsims)
     print('DATA DATAFRAME')
     print(dfdata['/REF/ALEPH_1996_S3486095/d01-x01-y01'].head())
     print('FIRST SIM DATAFRAME')
@@ -131,12 +134,13 @@ if __name__ == '__main__':
     
     
     X0 = []
-    for ii in range(len(generated_indices)):
+    for ii in range(0,len(generated_indices)):
         X0.append(test_statistic(filtered_data_keys,filtered_mc_keys, dfdata, dfsims[ii], which = 0))
     X0=np.array(X0)
     
     df_all_params = pd.read_csv('all_params_sample_25k.csv')
-    df_all_params=df_all_params.iloc[generated_indices]
+    df_generated_indices = np.array(generated_indices) -1
+    df_all_params=df_all_params.iloc[df_generated_indices].reset_index(drop=True)
     print(len(df_all_params))
     print(df_all_params.head())
     
