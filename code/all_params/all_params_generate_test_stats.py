@@ -25,16 +25,17 @@ mp.rc('font', **font)
 mp.rc('text', usetex=True)
 
 
-#memory = Memory('/afs/cern.ch/work/a/aalkadhi/private/TUNES/Pythia8_SBI_Tune/cluster')
+# memory = Memory('/afs/cern.ch/work/a/aalkadhi/private/TUNES/Pythia8_SBI_Tune/cluster')
+# memory = Memory('/home/ali/Downloads')
 
 
-# @memory.cache
+@memory.cache
 def get_data():
     # tracemalloc.start()
     yoda2numpy = Yoda2Numpy()
     files = list(glob('ALEPH_YODAS/ALEPH_YODAS/*.yoda'))
     # M = len(files)
-    M = 100
+    M = 1000
     generated_indices = []
     for file in files[:M]:
         index = file.split('_')[-1].split('.')[0]
@@ -155,7 +156,7 @@ def test_statistic(data_keys, mc_keys, dfdata, dfpred, which = 0):
         pred_err2 = pred_df['sumw2']
         
         stdv = np.sqrt(data_err**2 + pred_err2)
-        stdv = np.where(stdv < 1e-3, 1, stdv)
+        # stdv = np.where(stdv < 1e-3, 1, stdv)
         
         X = (((data-pred)/stdv)**2).sum()
         Y += X
@@ -165,8 +166,7 @@ def test_statistic(data_keys, mc_keys, dfdata, dfpred, which = 0):
     #     raise ZeroDivisionError("nbins = 0 in test statistic")
         
     # nbins = np.where(nbins < 1e-3, 1, nbins)
-    # return np.sqrt(Y/nbins)
-    return np.sqrt(Y)
+    return np.sqrt(Y/nbins)
 
 
 def make_hists(dfdata, dfbest, filtered_data_keys, filtered_mc_keys):
@@ -202,7 +202,7 @@ def plt_sim_data_hist(ax, hist):
     ax.step(y=pred_val, x=edges, label='pred')
     ax.legend()
             
-def plot_dist(hist_names, hists, filename='fig_bestfit_dist.png'):
+def plot_dist(hist_names, hists, filename='fig_bestfit_dist_all.png'):
     
         
     nhists= len(hist_names)
@@ -214,9 +214,11 @@ def plot_dist(hist_names, hists, filename='fig_bestfit_dist.png'):
     ax = ax.ravel()
     for hist_ind, hist in enumerate(hists[:nhists]):
         plt_sim_data_hist(ax[hist_ind], hist)
+    
+    plt.savefig(filename)   
     plt.show()
         
-    # plt.savefig(filename)   
+    
     
     
 
@@ -349,7 +351,7 @@ if __name__ == '__main__':
     
     print(f'best index of X0 (not index of file): {K_best}')
     
-    # dfbest = dfsims[index_of_lowest_X0]
+    dfbest = dfsims[index_of_lowest_X0]
     
     assert len(df_all_params) == len(X0_arr)
     a_best = df_all_params['StringZ:aLund'].iloc[K_best]
@@ -357,6 +359,8 @@ if __name__ == '__main__':
     
     print(f'a best= {a_best}, b best = {b_best}')
     
-    # hists = make_hists(dfdata, dfbest, filtered_data_keys, filtered_mc_keys)
+    hists = make_hists(dfdata, dfbest, filtered_data_keys, filtered_mc_keys)
+    plot_dist(filtered_data_keys, hists, filename='fig_bestfit_dist.png')
+    
     
     
