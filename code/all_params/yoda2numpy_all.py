@@ -70,7 +70,7 @@ class Yoda2Numpy:
                  index=0, 
                  filename='ALEPH_1996_S3486095'):
         
-        YODA_BASE = 'ALEPH_YODAS'
+        YODA_BASE = 'ALEPH_YODAS/ALEPH_YODAS'
         htype = hist_type[:3]
         if htype == 'sim':
             yoda_dir = ''
@@ -97,8 +97,9 @@ class Yoda2Numpy:
                  fname='ALEPH_1996_S3486095', 
                  first=1, 
                  last=44):
-    
         filename = self.pathname(hist_type, index, fname)
+        print("using filename", filename)
+
         if not os.path.exists(filename):
             raise FileNotFoundError(filename)
 
@@ -121,6 +122,8 @@ class Yoda2Numpy:
         keys  = list(hmap.keys())
         for key in keys:
             h = hmap[key].T
-            dfmap[key] = pd.DataFrame({label: value for label, value in zip(labels, h)})
+            df_at_key =pd.DataFrame({label: value for label, value in zip(labels, h)})
+            df_at_key= df_at_key.astype('float32')
+            dfmap[key] = df_at_key
         return dfmap
         

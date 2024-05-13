@@ -5,8 +5,9 @@ import matplotlib as mp
 import matplotlib.pyplot as plt
 import importlib
 from joblib import  Memory
+import tracemalloc
 
-#source /cvmfs/sft.cern.ch/lcg/views/LCG_102/x86_64-centos7-gcc11-opt/setup.sh
+#`source /cvmfs/sft.cern.ch/lcg/views/LCG_102/x86_64-centos7-gcc11-opt/setup.sh`
 from glob import glob
 from tqdm import tqdm
 from yoda2numpy_all import Yoda2Numpy
@@ -24,15 +25,16 @@ mp.rc('font', **font)
 mp.rc('text', usetex=True)
 
 
-memory = Memory('/afs/cern.ch/work/a/aalkadhi/private/TUNES/Pythia8_SBI_Tune/cluster')
+#memory = Memory('/afs/cern.ch/work/a/aalkadhi/private/TUNES/Pythia8_SBI_Tune/cluster')
 
 
 # @memory.cache
 def get_data():
+    # tracemalloc.start()
     yoda2numpy = Yoda2Numpy()
-    files = list(glob('ALEPH_YODAS/*.yoda'))
+    files = list(glob('ALEPH_YODAS/ALEPH_YODAS/*.yoda'))
     # M = len(files)
-    M = 1000
+    M = 100
     generated_indices = []
     for file in files[:M]:
         index = file.split('_')[-1].split('.')[0]
@@ -41,10 +43,15 @@ def get_data():
     print(generated_indices)
     # # --- SIM
     print(f'looping over {M:d} sim yoda files...\n')
-    dfsims = []
+    # dfsims = []
+    dfsims = {}
     for ii in tqdm(generated_indices):    
         # index here should match the index of the file
-        dfsims.append( yoda2numpy.todf( yoda2numpy('sim', index=ii) ) )
+        # dfsims.append( yoda2numpy.todf( yoda2numpy('sim', index=ii) ) )
+        dfsims[ii]= yoda2numpy.todf( yoda2numpy('sim', index=ii) ) 
+        # current, peak = tracemalloc.get_traced_memory() 
+        # print(current/(1024*1024), 'MB')
+    # tracemalloc.stop()
 
     # # --- NEW
     # print(f'looping over {M:d} new yoda files...\n')
@@ -71,18 +78,55 @@ def get_hist_names(dfdata):
 def filter_keys(dfdata, dfsims, data_keys, mc_keys):
     new_data_keys = []
     new_mc_keys = []
+    n_dfsims = len(dfsims)
     for data_key, mc_key in zip(data_keys, mc_keys):
         dfdat = dfdata[data_key]
         yval = dfdat['yval']
         yerr = dfdat['yerr-']
         
         if len(yval) < 2: continue
-        if not (mc_key in dfsims[0]): continue
+        # for i in range(n_dfsims):
+        if not (mc_key in list(dfsims.values())[0]): continue
+        # if not all(mc_key in sim for sim in list(dfsims.values())): continue
+        # if not all(mc_key in list(dfsims.values())[i] for i in range(n_dfsims)): continue
+        for key, val in dfsims.items():
+            if not mc_key in list(val):
+                print('keys dont match in file index', key)
         
         new_data_keys.append(data_key)
         new_mc_keys.append(mc_key)
         
+    print(' new data keys', new_data_keys) 
+    print(' new mc keys', new_mc_keys) 
     return new_data_keys, new_mc_keys
+
+# def filter_keys(dfdata, dfsims, data_keys, mc_keys):
+#     new_data_keys = []
+#     new_mc_keys = []
+#     n_dfsims = len(dfsims)
+#     for data_key, mc_key in zip(data_keys, mc_keys):
+#         dfdat = dfdata[data_key]
+#         yval = dfdat['yval']
+#         yerr = dfdat['yerr-']
+        
+#         if len(yval) >= 2:
+#             # for i in range(n_dfsims):
+#             if (mc_key in dfsims[0]):
+#                 new_data_keys.append(data_key)
+#                 new_mc_keys.append(mc_key)
+        
+        
+#     new_data_keys = list(set(new_data_keys))
+#     new_mc_keys = list(set(new_mc_keys))
+#     print(' new data keys', new_data_keys) 
+#     print(' new mc keys', new_mc_keys) 
+    
+    
+#     print('len new data keys', len(new_data_keys)) 
+#     print('len new mc keys', len(new_mc_keys)) 
+#     # overlap = new_data_keys.intersection(new_mc_keys)
+#     # print('len overlap keys', len(overlap)) 
+#     return new_data_keys, new_mc_keys
 
 
 def test_statistic(data_keys, mc_keys, dfdata, dfpred, which = 0):
@@ -117,9 +161,150 @@ def test_statistic(data_keys, mc_keys, dfdata, dfpred, which = 0):
         Y += X
         nbins += ndat
         
-    return np.sqrt(Y/nbins)
+    # if nbins == 0:
+    #     raise ZeroDivisionError("nbins = 0 in test statistic")
+        
+    # nbins = np.where(nbins < 1e-3, 1, nbins)
+    # return np.sqrt(Y/nbins)
+    return np.sqrt(Y)
 
 
+def make_hists(dfdata, dfbest, filtered_data_keys, filtered_mc_keys):
+    hists = []
+    for data_key, mc_key in zip(filtered_data_keys, filtered_mc_keys):
+        data=dfdata[data_key]
+        data_val = data['yval']
+        # data_err = data['yerr-']
+        
+        pred = dfbest[mc_key]
+        pred_val = pred['sumw']
+        # pred_err = np.sqrt(pred_val['sumw2'])
+        edges = dfbest[mc_key]['xlow']
+        
+        hist_name = data_key.split('/')[-1]
+        hists.append((hist_name, edges, data_val, pred_val))
+    return hists
+
+def plt_sim_data_hist(ax, hist):
+    name, edges, data_val, pred_val = hist
+    
+    xmin = 0
+    xmax = edges.max()
+    ax.set_ylim(xmin, xmax)
+    
+    ymin = 0
+    ymax = 1.25 * data_val.max()
+    ax.set_ylim(ymin, ymax)
+
+    ax.text(xmin + 0.7*(xmax-xmin), ymin + 0.2*(ymax-ymin), name)
+    
+    ax.step(y=data_val, x=edges, label='data')
+    ax.step(y=pred_val, x=edges, label='pred')
+    ax.legend()
+            
+def plot_dist(hist_names, hists, filename='fig_bestfit_dist.png'):
+    
+        
+    nhists= len(hist_names)
+    ncols = 3
+    nrows = nhists // ncols
+    nhists= nrows * ncols
+    
+    fig, ax = plt.subplots(nrows, ncols, figsize=(15, 20), edgecolor='k')
+    ax = ax.ravel()
+    for hist_ind, hist in enumerate(hists[:nhists]):
+        plt_sim_data_hist(ax[hist_ind], hist)
+    plt.show()
+        
+    # plt.savefig(filename)   
+    
+    
+
+def plot_cdf(df, a=None, b=None,
+             xbins=10, xmin=0.5, xmax=1.5, 
+             ybins=10, ymin=0.5, ymax=1.5, 
+             filename='fig_cdf_via_hist.png',
+             fgsize=(5, 5), 
+             ftsize=18):
+    
+    # approximate cdf via histogramming
+    xrange = (xmin, xmax)
+    yrange = (ymin, ymax)
+        
+    # weighted histogram   (count the number of ones per bin)
+    hw, xe, ye = np.histogram2d(df['StringZ:aLund'], df['StringZ:bLund'], 
+                                bins=(xbins, ybins), 
+                                range=(xrange, yrange), 
+                                weights=df.Z0)
+
+    # unweighted histogram (count number of ones and zeros per bin)
+    hu, _, _ = np.histogram2d(df['StringZ:aLund'], df['StringZ:bLund'], 
+                              bins=(xbins, ybins), 
+                              range=(xrange, yrange)) 
+    P =  hw / (hu + 1.e-10)    
+  
+    # flatten arrays so that p, x, and y are 1d arrays
+    # of the same length.    
+    # get bin centers
+    x   = (xe[1:] + xe[:-1])/2
+    y   = (ye[1:] + ye[:-1])/2
+    X,Y = np.meshgrid(x, y)
+    x   = X.flatten()
+    y   = Y.flatten()
+    
+    # WARNING: must transpose P so that X, Y, and P have the
+    # same shape
+    P   = P.T
+    p   = P.flatten()
+                
+    # Now make plots
+    fig, ax = plt.subplots(nrows=1, ncols=1, figsize=fgsize)
+    
+    ax.set_xlim(xmin, xmax)
+    #ax.set_xticks(np.linspace(xmin, xmax, 6))
+    ax.set_xlabel(r'$a$', fontsize=ftsize)
+    
+    ax.set_ylim(ymin, ymax)
+    #ax.set_yticks(np.linspace(xmin, xmax, 9))
+    ax.set_ylabel(r'$b$',  fontsize=ftsize)
+    
+    mylevels = np.array([0.68, 0.8, 0.9])
+
+    colormap = 'rainbow'
+    
+    cs = ax.contour(X, Y, P, 
+                    extent=(xmin, xmax, ymin, ymax),
+                    levels=mylevels,
+                    linewidths=2,
+                    linestyles='dashed',
+                    cmap=colormap)
+
+    ax.clabel(cs, cs.levels, 
+              inline=True, 
+              fontsize=18, fmt='%4.2f', 
+              colors='black')
+
+    if a != None:
+        if b != None:
+            print(f'a(best): {a_best:10.3f} b(best): {b_best:10.3f}')
+            ax.plot([a_best], [b_best], 
+                    markerfacecolor='red',
+                    markersize=20, 
+                    marker='.')
+            
+    ax.grid()
+
+    plt.tight_layout()
+    # plt.savefig(filename)    
+    plt.show()
+    
+def find_key_by_value(my_dict, search_value):
+    for key, value in my_dict.items():
+        if value == search_value:
+            return int(key)
+    return None  # If the value is not found, return None
+
+    
 if __name__ == '__main__':
     dfdata, dfsims, generated_indices = get_data()
     print(generated_indices)
@@ -127,28 +312,51 @@ if __name__ == '__main__':
     print('DATA DATAFRAME')
     print(dfdata['/REF/ALEPH_1996_S3486095/d01-x01-y01'].head())
     print('FIRST SIM DATAFRAME')
-    print(dfsims[0]['/ALEPH_1996_S3486095/d01-x01-y01'].head())
+    print(dfsims[generated_indices[0]]['/ALEPH_1996_S3486095/d01-x01-y01'].head())
     
     data_keys, mc_keys = get_hist_names(dfdata)
     filtered_data_keys, filtered_mc_keys = filter_keys(dfdata, dfsims, data_keys, mc_keys)
     
     
     X0 = []
-    for ii in range(0,len(generated_indices)):
-        X0.append(test_statistic(filtered_data_keys,filtered_mc_keys, dfdata, dfsims[ii], which = 0))
-    X0=np.array(X0)
-    
+    indices_giving_error = []
+    X0 = {}
+    for ii, gen_ind in enumerate(generated_indices):
+        # X0.append(test_statistic(filtered_data_keys,filtered_mc_keys, dfdata, dfsims[gen_ind], which = 0))
+        # try:
+        #     X0.append(test_statistic(filtered_data_keys,filtered_mc_keys, dfdata, dfsims[ii], which = 0))
+        try:
+            X0[gen_ind] = test_statistic(filtered_data_keys,filtered_mc_keys, dfdata, dfsims[gen_ind], which = 0)
+        except Exception:
+            print('test statistic error in file index: ', gen_ind)
+        # except ZeroDivisionError:
+        #     print(f"gen_index {gen_ind} somehow gives nbins=0")
+        #     indices_giving_error.append(gen_ind)
+        #     continue
+    # X0_arr=np.array(X0.values())
+    print('indices_giving error: ', indices_giving_error.sort())
+    X0_arr = np.array(list(X0.values()))
+    print('X0 array:', X0_arr)
     df_all_params = pd.read_csv('all_params_sample_25k.csv')
-    df_generated_indices = np.array(generated_indices) -1
-    df_all_params=df_all_params.iloc[df_generated_indices].reset_index(drop=True)
+    print(f'generated indices: {generated_indices}')
+    df_all_params=df_all_params.iloc[generated_indices]#.reset_index(drop=True)
     print(len(df_all_params))
     print(df_all_params.head())
     
-    K_best = np.argmin(X0)   # file with minimum value of test statistic
-    dfbest = dfsims[K_best]
+    K_best = np.argmin(X0_arr)   # file with minimum value of test statistic
+    lowest_X0 = X0_arr[K_best]
+    index_of_lowest_X0 = find_key_by_value(X0, lowest_X0)
     
+    print(f'best index of X0 (not index of file): {K_best}')
+    
+    # dfbest = dfsims[index_of_lowest_X0]
+    
+    assert len(df_all_params) == len(X0_arr)
     a_best = df_all_params['StringZ:aLund'].iloc[K_best]
     b_best = df_all_params['StringZ:bLund'].iloc[K_best]
     
     print(f'a best= {a_best}, b best = {b_best}')
+    
+    # hists = make_hists(dfdata, dfbest, filtered_data_keys, filtered_mc_keys)
+    
     
