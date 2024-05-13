@@ -1,0 +1,27 @@
+universe = vanilla
+Executable  = pythia_parallel.sh
+
+Arguments  = $(Process)
+
+transfer_input_files = PYTHIA_CARDS_25K,ALEPH_YODAS,main42
+transfer_output_files = ALEPH_YODAS
+should_transfer_files = YES
+when_to_transfer_output = ON_EXIT
+
+
+
+Log = rivet_log/log_$(Process).txt
+
+Output = rivet_out/out_$(Process).txt
+
+Error = rivet_error/err_$(Process).txt
+
+MaxTransferInputMB = 8500
+
+RequestMemory = 20000
+
+RequestCpus = 2
++RequestRunTime=10000
+
+max_idle = 500
+Queue 1000

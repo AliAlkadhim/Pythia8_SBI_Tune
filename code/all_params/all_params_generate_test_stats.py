@@ -26,7 +26,7 @@ mp.rc('text', usetex=True)
 
 
 # memory = Memory('/afs/cern.ch/work/a/aalkadhi/private/TUNES/Pythia8_SBI_Tune/cluster')
-# memory = Memory('/home/ali/Downloads')
+memory = Memory('/home/ali/Downloads')
 
 
 @memory.cache
@@ -35,7 +35,7 @@ def get_data():
     yoda2numpy = Yoda2Numpy()
     files = list(glob('ALEPH_YODAS/ALEPH_YODAS/*.yoda'))
     # M = len(files)
-    M = 1000
+    M = 100
     generated_indices = []
     for file in files[:M]:
         index = file.split('_')[-1].split('.')[0]
@@ -156,7 +156,7 @@ def test_statistic(data_keys, mc_keys, dfdata, dfpred, which = 0):
         pred_err2 = pred_df['sumw2']
         
         stdv = np.sqrt(data_err**2 + pred_err2)
-        # stdv = np.where(stdv < 1e-3, 1, stdv)
+        stdv = np.where(stdv < 1e-3, 1, stdv)
         
         X = (((data-pred)/stdv)**2).sum()
         Y += X
@@ -350,6 +350,8 @@ if __name__ == '__main__':
     index_of_lowest_X0 = find_key_by_value(X0, lowest_X0)
     
     print(f'best index of X0 (not index of file): {K_best}')
+    
+    print(f'file index of lowest X0: {index_of_lowest_X0}')
     
     dfbest = dfsims[index_of_lowest_X0]
     
