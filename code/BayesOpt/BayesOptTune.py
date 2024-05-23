@@ -5,8 +5,12 @@ import matplotlib as mp
 import matplotlib.pyplot as plt
 import importlib
 
-from bayes_opt import BayesianOptimization
+from bayes_opt import BayesianOptimization, UtilityFunction 
 
+
+from ax.service.ax_client import AxClient, ObjectiveProperties
+from ax.utils.measurement.synthetic_functions import hartmann6
+from ax.utils.notebook.plotting import init_notebook_plotting, render
 
 #`source /cvmfs/sft.cern.ch/lcg/views/LCG_102/x86_64-centos7-gcc11-opt/setup.sh`
 from glob import glob
@@ -14,6 +18,7 @@ from tqdm import tqdm
 from yoda2numpy_BayesOpt import Yoda2Numpy
 
 from pythia_SBI_utils import *
+
 
 # update fonts
 FONTSIZE = 14
@@ -28,6 +33,8 @@ mp.rc('font', **font)
 mp.rc('text', usetex=True)
 
 
+BAYES_OPT=False
+AX=True
 
 
 def make_pythia_card(aLund, bLund):
@@ -51,16 +58,16 @@ WeakSingleBoson:ffbar2gmZ = on
 23:onMode = off
 23:onIfAny = 1 2 3 4 5
 PDF:lepton = off
-SpaceShower:QEDshowerByL = off"""
+SpaceShower:QEDshowerByL = off\n\n"""
         f.write(first_block)
         # f.write(f"Random:seed={indx+1}")
-        f.write(f"StringZ:aLund = {aLund}")
-        f.write(f"StringZ:bLund = {bLund}")
+        f.write(f"StringZ:aLund = {aLund}\n\n")
+        f.write(f"StringZ:bLund = {bLund}\n\n")
 
 PARAM_DICT = {
         'StringZ:aLund' : [0.0, 2.0],
         'StringZ:bLund': [0.2, 2.0],
-        # 'StringZ:rFactC':[0.0, 2.0],
+        # 'StringZ:rFactC':[0.0, 1.994052.0],
         # 'StringZ:rFactB': [0., 2.0],
         # 'StringZ:aExtraSQuark':[0.,2],
         # 'StringZ:aExtraDiquark':[0.,2.],
@@ -93,7 +100,7 @@ def true_objective_func(aLund, bLund):
     #step 2 run main42 and rivet
     os.system("""./main42 BO_Cards/ALEPH_1996_S3486095_BO_card.cmnd ALEPH_1996_S3486095_card.fifo &
     
-    rivet -o ALEPH_1996_S3486095_hist_.yoda -a ALEPH_1996_S3486095 ALEPH_1996_S3486095_card.fifo
+    rivet -o ALEPH_1996_S3486095_hist_0.yoda -a ALEPH_1996_S3486095 ALEPH_1996_S3486095_card.fifo
 
     rm ALEPH_1996_S3486095_card.fifo
     mv ALEPH_1996_S3486095_hist_0.yoda ALEPH_YODAS_BayesOpt/""")
@@ -118,7 +125,11 @@ def true_objective_func(aLund, bLund):
         except Exception:
             print('test statistic error in file index: ', gen_ind)
             
+    if BAYES_OPT:        
         objective_func = - X0[0]
+    else:
+        objective_func = X0[0]
+    os.system("rm ALEPH_YODAS_BayesOpt/ALEPH_1996_S3486095_hist_0.yoda")
         
     print(f"objective function = {objective_func}")
     return objective_func
@@ -128,16 +139,67 @@ def true_objective_func(aLund, bLund):
 if __name__=='__main__':
     # make_pythia_card(1,2,1)
     # true_objective_func(aLund=1, bLund=2)
-    PBOUNDS = get_pbounds(PARAM_DICT)
-    print(PBOUNDS)
-    optimizer = BayesianOptimization(
-        f=true_objective_func,
-        pbounds=PBOUNDS,
-        verbose=2, 
-        random_state=1
-    )
-    optimizer.maximize(
-        init_points=2,
-        n_iter=6
-    )
-    print(optimizer.max)
+    if BAYES_OPT:
+        PBOUNDS = get_pbounds(PARAM_DICT)
+        print(PBOUNDS)
+        optimizer = BayesianOptimization(
+            f=true_objective_func,
+            pbounds=PBOUNDS,
+            verbose=2, 
+            random_state=1
+        )
+        # kind: {'ucb', 'ei', 'poi'}
+        #     * 'ucb' stands for the Upper Confidence Bounds method
+        #     * 'ei' is the Expected Improvement method
+        #     * 'poi' is the Probability Of Improvement criterion.
+            
+        # acquisition_function = UtilityFunction(kind='ucb',
+        #                         kappa=2.576,
+        #                         xi=0.0,
+        #                         kappa_decay=1,
+        #                         kappa_decay_delay=0)
+        
+        # acquisition_function = UtilityFunction(kind='poi')
+        acquisition_function = UtilityFunction(kind='ei')
+        
+        optimizer.maximize(
+            init_points=16,
+            n_iter=6,
+            acquisition_function=acquisition_function
+        )
+        print('BEST PARAMETERS', optimizer.max)
+        for i, res in enumerate(optimizer.res):
+            print("Iteration {}: \t{}".format(i, res))
+            
+            
+    if AX:
+        ax_client = AxClient()
+        ax_client.create_experiment(
+            name="Ax_Tune_Pythia",
+            parameters = [
+                {
+                    "name": "aLund",
+                    "type": "range",
+                    "bounds": [0.0, 2.0],
+                }, 
+                {
+                    "name": "bLund",
+                    "type": "range",
+                    "bounds": [0.2, 2.0],
+                },
+            ],
+            objectives = {"true_objective_func": ObjectiveProperties(minimize=True)},
+        )
+        
+        N_ITER = 12
+        for i in range(N_ITER):
+            parameterization, trial_index = ax_client.get_next_trial()
+            print(parameterization)
+            ax_client.complete_trial(trial_index=trial_index, raw_data=true_objective_func(
+                aLund=parameterization["aLund"], bLund=parameterization["bLund"]))
+        
+        
+        best_parameters, values = ax_client.get_best_parameters()
+
+        print("BEST PARAMETERS: ", best_parameters)
+    

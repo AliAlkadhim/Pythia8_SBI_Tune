@@ -13,4 +13,9 @@ WeakSingleBoson:ffbar2gmZ = on
 23:onMode = off
 23:onIfAny = 1 2 3 4 5
 PDF:lepton = off
-SpaceShower:QEDshowerByL = offStringZ:aLund = 1.7753940621130175StringZ:bLund = 1.0049604493033477
+SpaceShower:QEDshowerByL = off
+
+StringZ:aLund = 2.0
+
+StringZ:bLund = 1.84291366392398
+
