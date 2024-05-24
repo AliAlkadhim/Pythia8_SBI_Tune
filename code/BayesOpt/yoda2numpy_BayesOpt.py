@@ -70,11 +70,16 @@ class Yoda2Numpy:
                  index=0, 
                  filename='ALEPH_1996_S3486095'):
         
-        YODA_BASE = 'ALEPH_YODAS_BayesOpt/'
+        YODA_BASE = 'ALEPH_YODAS_BayesOpt'
         htype = hist_type[:3]
         if htype == 'sim':
             yoda_dir = ''
             postfix  = f'_hist_{index:d}'
+            return f'{YODA_BASE:s}/{filename:s}{postfix:s}.yoda'
+        
+        if htype == 'val':
+            yoda_dir = ''
+            postfix  = f'_hist_valid_{index:d}'
             return f'{YODA_BASE:s}/{filename:s}{postfix:s}.yoda'
         
         elif htype == 'dat':

@@ -177,13 +177,13 @@ def make_hists(dfdata, dfbest, filtered_data_keys, filtered_mc_keys):
     hists = []
     for data_key, mc_key in zip(filtered_data_keys, filtered_mc_keys):
         data=dfdata[data_key]
-        data_val = data['yval']
+        data_val = data['yval'].values
         # data_err = data['yerr-']
         
         pred = dfbest[mc_key]
-        pred_val = pred['sumw']
+        pred_val = pred['sumw'].values
         # pred_err = np.sqrt(pred_val['sumw2'])
-        edges = dfbest[mc_key]['xlow']
+        edges = dfbest[mc_key]['xlow'].values
         
         hist_name = data_key.split('/')[-1]
         hists.append((hist_name, edges, data_val, pred_val))
