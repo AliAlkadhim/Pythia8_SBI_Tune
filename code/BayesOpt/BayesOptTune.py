@@ -12,6 +12,12 @@ from ax.service.ax_client import AxClient, ObjectiveProperties
 from ax.utils.measurement.synthetic_functions import hartmann6
 from ax.utils.notebook.plotting import init_notebook_plotting, render
 
+
+# init_notebook_plotting()
+# import plotly.io as pio
+# pio.renderers.default = "jupyterlab"
+
+
 #`source /cvmfs/sft.cern.ch/lcg/views/LCG_102/x86_64-centos7-gcc11-opt/setup.sh`
 from glob import glob
 from tqdm import tqdm
@@ -43,7 +49,7 @@ def make_pythia_card(aLund, bLund):
     filename = f"ALEPH_1996_S3486095_BO_card.cmnd"
     file_path = os.path.join(cards_dir, filename)
     with open(file_path,'w') as f:
-        first_block="""Main:numberOfEvents = 50000          ! number of events to generate
+        first_block="""Main:numberOfEvents = 100000          ! number of events to generate
 Next:numberShowEvent = 0           ! suppress full listing of first events
 # random seed
 Random:setSeed = on
@@ -191,7 +197,7 @@ if __name__=='__main__':
             objectives = {"true_objective_func": ObjectiveProperties(minimize=True)},
         )
         
-        N_ITER = 12
+        N_ITER = 45
         for i in range(N_ITER):
             parameterization, trial_index = ax_client.get_next_trial()
             print(parameterization)
@@ -202,4 +208,6 @@ if __name__=='__main__':
         best_parameters, values = ax_client.get_best_parameters()
 
         print("BEST PARAMETERS: ", best_parameters)
+        
+        # render(ax_client.get_contour_plot())
     

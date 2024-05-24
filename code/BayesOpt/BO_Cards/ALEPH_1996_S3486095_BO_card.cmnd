@@ -15,7 +15,7 @@ WeakSingleBoson:ffbar2gmZ = on
 PDF:lepton = off
 SpaceShower:QEDshowerByL = off
 
-StringZ:aLund = 2.0
+StringZ:aLund = 1.1759231299840136
 
-StringZ:bLund = 1.84291366392398
+StringZ:bLund = 1.5
 
