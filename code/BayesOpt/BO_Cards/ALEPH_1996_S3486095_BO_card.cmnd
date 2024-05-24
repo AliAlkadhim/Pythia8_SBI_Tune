@@ -1,4 +1,4 @@
-Main:numberOfEvents = 300000          ! number of events to generate
+Main:numberOfEvents = 300          ! number of events to generate
 Next:numberShowEvent = 0           ! suppress full listing of first events
 # random seed
 Random:setSeed = on
@@ -15,7 +15,7 @@ WeakSingleBoson:ffbar2gmZ = on
 PDF:lepton = off
 SpaceShower:QEDshowerByL = off
 
-StringZ:aLund = 0.9648193984736807
+StringZ:aLund = 0.0
 
-StringZ:bLund = 1.1497413177482532
+StringZ:bLund = 2.0
 
