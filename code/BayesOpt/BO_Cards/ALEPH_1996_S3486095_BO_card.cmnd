@@ -1,4 +1,4 @@
-Main:numberOfEvents = 300000          ! number of events to generate
+Main:numberOfEvents = 250000          ! number of events to generate
 Next:numberShowEvent = 0           ! suppress full listing of first events
 # random seed
 Random:setSeed = on
@@ -15,7 +15,33 @@ WeakSingleBoson:ffbar2gmZ = on
 PDF:lepton = off
 SpaceShower:QEDshowerByL = off
 
-StringZ:aLund = 0.9966992417445005
+StringZ:aLund = 0.7524796857166851
 
-StringZ:bLund = 1.2158840742157055
+StringZ:bLund = 1.0498405286519588
+
+StringZ:rFactC = 1.380340215435916
+
+StringZ:rFactC = 0.8192060014124504
+
+StringZ:rFactC = 0.0
+
+StringZ:rFactC = 0.9317752257993167
+
+StringPT:sigma = 0.31663656546689334
+
+StringPT:enhancedFraction = 0.0
+
+StringPT:enhancedWidth = 1.9399369478416235
+
+StringFlav:ProbStoUD = 0.21709316219921101
+
+StringFlav:probQQtoQ = 0.10432120755832927
+
+StringFlav:probSQtoQQ = 0.949422310867615
+
+StringFlav:ProbQQ1toQQ0 = 0.16435294304018638
+
+TimeShower:alphaSvalue = 0.13793011517238107
+
+TimeShower:pTmin = 0.49594115994581334
 
