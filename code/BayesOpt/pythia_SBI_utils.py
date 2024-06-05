@@ -170,7 +170,8 @@ def test_statistic(data_keys, mc_keys, dfdata, dfpred, which = 0):
     #     raise ZeroDivisionError("nbins = 0 in test statistic")
         
     # nbins = np.where(nbins < 1e-3, 1, nbins)
-    return np.sqrt(Y/nbins)
+    # return np.sqrt(Y/nbins)
+    return Y
 
 
 def make_hists(dfdata, dfbest, filtered_data_keys, filtered_mc_keys):
